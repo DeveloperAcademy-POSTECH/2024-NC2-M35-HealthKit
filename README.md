@@ -45,4 +45,54 @@ https://github.com/DeveloperAcademy-POSTECH/2024-NC2-M35-HealthKit/assets/166302
 
 
 ## 🛠️ About Code
-(핵심 코드에 대한 설명 추가)
+**func** requestAuthorization() {
+
+**guard** HKHealthStore.isHealthDataAvailable() **else** { **return** }
+
+**let** typesToRead: Set = [HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!]
+
+healthStore.requestAuthorization(toShare: [], read: typesToRead) { success, error **in**
+
+**if** !success {
+
+print("HealthKit authorization failed: \(String(describing: error?.localizedDescription))")
+
+}
+
+}
+
+}
+
+**func** fetchCalorieBurned(startDate: Date, endDate: Date, completion: **@escaping** (Double) -> Void) {
+
+**guard** **let** caloriesType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned) **else** {
+
+completion(0.0)
+
+**return**
+
+}
+
+print("fetchCalorieBurned")
+
+**let** predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictEndDate)
+
+**let** query = HKStatisticsQuery(quantityType: caloriesType, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, result, error **in**
+
+**var** calories: Double = 0.0
+
+**if** **let** sum = result?.sumQuantity() {
+
+calories = sum.doubleValue(for: .kilocalorie())
+
+print("calories in caloriemanager \(calories)")
+
+}
+
+completion(calories)
+
+}
+
+healthStore.execute(query)
+
+}
